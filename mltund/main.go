@@ -22,6 +22,9 @@ var config configData
 
 func init() {
     logger = tunlog.New("mltund")
+    config = configData{
+        Bind: ":1842",
+    }
 }
 
 func handle(conn net.Conn) {
@@ -43,10 +46,6 @@ func readConf(file_name string) {
 
     if err != nil {
         logger.Fatalf("Could not decode configuration file: %s\n", err)
-    }
-
-    if config.Bind == "" {
-        config.Bind = ":1842"
     }
 }
 
