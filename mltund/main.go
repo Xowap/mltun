@@ -4,40 +4,76 @@ import (
     "log"
     "github.com/xowap/mltun/tunlog"
     "net"
+    "encoding/json"
+    "io/ioutil"
+    "os"
 )
 
 
+type configData struct {
+    Users map[string]string
+    Bind string
+}
+
+
 var logger *log.Logger
+var config configData
 
 func init() {
     logger = tunlog.New("mltund")
 }
 
 func handle(conn net.Conn) {
-    logger.Println("Incoming connection from " + conn.RemoteAddr().String())
+    logger.Printf("Incoming connection from %s\n", conn.RemoteAddr())
 
     conn.Write([]byte("coucou\n"))
     conn.Close()
 }
 
-func main() {
-    logger.Println("Starting")
-
-    bind_addr := ":1842"
-    listener, err := net.Listen("tcp", bind_addr)
+func readConf(file_name string) {
+    logger.Printf("Loading conf file \"%s\"\n", file_name)
+    data, err := ioutil.ReadFile(file_name)
 
     if err != nil {
-        logger.Fatalln("Could not listen to " + bind_addr)
+        logger.Fatalf("Could not load configuration: %s\n", err)
     }
+
+    err = json.Unmarshal(data, &config)
+
+    if err != nil {
+        logger.Fatalf("Could not decode configuration file: %s\n", err)
+    }
+
+    if config.Bind == "" {
+        config.Bind = ":1842"
+    }
+}
+
+func main() {
+    logger.Println("Starting...")
+
+    if len(os.Args) != 2 {
+        logger.Fatalln("Wrong arguments syntax. You must provide configuration file as sole argument.")
+    }
+
+    readConf(os.Args[1])
+
+    listener, err := net.Listen("tcp", config.Bind)
+
+    if err != nil {
+        logger.Fatalf("Could not listen to %s. Reason: %s\n", config.Bind, err)
+    }
+
+    logger.Println("Started on " + config.Bind)
 
     for {
         conn, err := listener.Accept()
 
         if err != nil {
-            logger.Println("Impossible to accept incoming connection. Your system must be under serious stress")
-            continue
+            logger.Printf("Impossible to accept incoming connection. Your system must be under serious stress. " +
+                          "Reason: %s\n", err)
+        } else {
+            go handle(conn)
         }
-
-        go handle(conn)
     }
 }
