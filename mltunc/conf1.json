@@ -1,0 +1,11 @@
+{
+  "User": {
+    "Username": "alice",
+    "Password": "foo"
+  },
+  "Remotes": [
+    {
+      "Address": "localhost:1842"
+    }
+  ]
+}

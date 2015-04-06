@@ -30,7 +30,20 @@ func init() {
 func handle(conn net.Conn) {
     logger.Printf("Incoming connection from %s\n", conn.RemoteAddr())
 
-    conn.Write([]byte("coucou\n"))
+    success, err := proto.EnsureMltun(conn)
+
+    if err != nil {
+        logger.Printf("Aborting %s because of error: %s\n", conn.RemoteAddr(), err)
+        conn.Close()
+        return
+    }
+
+    if !success {
+        logger.Printf("%s doesn't speak the same language, aborting\n", conn.RemoteAddr())
+        conn.Close()
+        return
+    }
+
     conn.Close()
 }
 
@@ -53,7 +66,7 @@ func main() {
     logger.Println("Starting...")
 
     if len(os.Args) != 2 {
-        logger.Fatalln("Wrong arguments syntax. You must provide configuration file as sole argument.")
+        logger.Fatalln("Wrong arguments syntax. You must provide a configuration file as sole argument.")
     }
 
     readConf(os.Args[1])
