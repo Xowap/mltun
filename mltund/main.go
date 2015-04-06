@@ -3,6 +3,7 @@ package main
 import (
     "log"
     "github.com/xowap/mltun/tunlog"
+    "github.com/xowap/mltun/proto"
     "net"
     "encoding/json"
     "io/ioutil"
@@ -11,7 +12,7 @@ import (
 
 
 type configData struct {
-    Users map[string]string
+    Users []proto.User
     Bind string
 }
 

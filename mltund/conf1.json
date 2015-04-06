@@ -1,5 +1,8 @@
 {
-  "Users": {
-    "alice": "foo"
-  }
+  "Users": [
+    {
+      "Username": "alice",
+      "Password": "foo"
+    }
+  ]
 }
